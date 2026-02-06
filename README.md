@@ -22,56 +22,59 @@ A beautiful, interactive installer for **Paqet** - a bidirectional packet-level 
 ### One-Command Installation (Server or Client)
 
 ```bash
-# Install as SERVER (with progress display)
 echo "📥 Downloading EaSy PaQeT installer..." && \
 sudo bash -c "$(wget -q --show-progress -O- https://raw.githubusercontent.com/mehditohidi/EaSy-PaQeT/main/installer.sh)"
-
-# Alternative using curl
+```
+# Manual Installation
 sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/mehditohidi/EaSy-PaQeT/main/installer.sh)"
 Manual Installation (Recommended)
 
-bash
-# 1. Download the installer
+```bash
 wget https://raw.githubusercontent.com/mehditohidi/EaSy-PaQeT/main/installer.sh
+```
 
-# 2. Review the script (ALWAYS do this!)
-nano installer.sh
-
-# 3. Make it executable and run
+# 2. Make it executable and run
 chmod +x installer.sh
 sudo ./installer.sh
-📋 Prerequisites
+
+
+
+### 📋 Prerequisites
 
 Operating System: Linux (Debian/Ubuntu/RHEL/CentOS)
 Architecture: x86_64, ARM64, or ARM32
 Permissions: Root access (sudo)
 Dependencies: Automatically installed by the script
-🖥️ Installation Options
+
+
+### 🖥️ Installation Options
 
 1. Install as SERVER
 
 Creates a Paqet server that listens for incoming connections.
 
-bash
+```bash
 # The installer will guide you through:
 # • Port selection (default: 9999)
 # • Encryption key generation
 # • Network configuration
 # • Firewall setup
+```
+
 2. Install as CLIENT
 
 Creates a Paqet client that connects to a server.
 
-bash
+```bash
 # You'll need:
 # • Server IP address and port
 # • Server secret key
 # • Optional: SOCKS5 proxy configuration
-🎮 Interactive Menu
+```
 
 After installation, you can run the installer again to access the management menu:
 
-text
+```text
 ╔════════════════════════════════════════════════╗
 ║             EaSy PaQeT MAIN MENU              ║
 ╚════════════════════════════════════════════════╝
@@ -84,7 +87,9 @@ text
 6) Test Connection (Client Only)
 7) Uninstall
 8) Exit
-🔧 Configuration Options
+```
+
+### 🔧 Configuration Options
 
 The installer supports all Paqet configuration options:
 
@@ -95,42 +100,48 @@ TCP Flags	PA, S, A, SA, custom arrays	Packet flag cycling
 Network	IPv4/IPv6, PCAP buffers, interface config	Network layer settings
 Proxy	SOCKS5 with authentication	Client-side proxy setup
 Port Forwarding	Multiple rules with protocols	Advanced routing
-🛠️ Management Commands
+
+
+### 🛠️ Management Commands
 
 After installation, manage Paqet with:
 
-bash
 # Service management
-sudo systemctl start paqet      # Start service
-sudo systemctl stop paqet       # Stop service
-sudo systemctl restart paqet    # Restart service
-sudo systemctl status paqet     # Check status
+```sudo systemctl start paqet```      # Start service
+```sudo systemctl stop paqet```       # Stop service
+```sudo systemctl restart paqet```    # Restart service
+```sudo systemctl status paqet```     # Check status
 
 # Log viewing
-sudo journalctl -u paqet -f     # Follow logs in real-time
-sudo journalctl -u paqet -n 50  # View last 50 log entries
+```sudo journalctl -u paqet -f```     # Follow logs in real-time
+```sudo journalctl -u paqet -n 50```  # View last 50 log entries
 
 # Configuration
-sudo cat /etc/paqet/server.yaml # View server config
-sudo cat /etc/paqet/client.yaml # View client config
+```sudo cat /etc/paqet/server.yaml``` # View server config
+```sudo cat /etc/paqet/client.yaml``` # View client config
+
 🧹 Uninstallation
 
-bash
 # Run the installer and choose option 7
-sudo ./installer.sh
+
 
 # Or manually remove
+```bash
 sudo systemctl stop paqet
 sudo rm -rf /etc/paqet /usr/local/bin/paqet
 sudo rm /etc/systemd/system/paqet.service
+```
+
 📁 File Structure
 
-text
+```text
 /etc/paqet/
 ├── server.yaml          # Server configuration
 ├── client.yaml          # Client configuration
 /usr/local/bin/paqet     # Paqet binary
 /etc/systemd/system/paqet.service  # Systemd service
+```
+
 🐛 Troubleshooting
 
 Issue	Solution
@@ -139,6 +150,7 @@ Service not starting	Check logs: journalctl -u paqet -f
 Connection failed	Verify firewall rules and server IP
 Binary not found	Re-run installer to download paqet
 Config errors	Check YAML syntax in /etc/paqet/
+
 🔒 Security Notes
 
 ⚠️ Important Security Considerations:
@@ -148,6 +160,7 @@ Keep your secret key secure - regenerate if compromised
 Review iptables rules after installation
 Use strong encryption (AES-256 recommended)
 Monitor logs regularly for suspicious activity
+
 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.

@@ -651,15 +651,28 @@ if [[ -n "$BEST_MIRROR" ]]; then
   sed -i.bak "s|http://.*archive.ubuntu.com/ubuntu|https://$BEST_MIRROR/ubuntu|g" /etc/apt/sources.list 2>/dev/null || true
   sed -i.bak "s|http://.*security.ubuntu.com/ubuntu|https://$BEST_MIRROR/ubuntu|g" /etc/apt/sources.list 2>/dev/null || true
   sed -i.bak "s|http://.*archive.ubuntu.com/ubuntu|https://$BEST_MIRROR/ubuntu|g" /etc/apt/sources.list.d/ubuntu.sources 2>/dev/null || true
+else
+  echo "⚠️  No working mirrors found, using default."
 fi
 
-set -e
 echo
-
 print_step "Updating package list and installing dependencies..."
-apt-get update > /dev/null 2>&1
-apt-get install -y curl wget libpcap-dev iptables-persistent netfilter-persistent > /dev/null 2>&1
-print_success "Dependencies installed"
+
+# Temporarily disable exit-on-error for apt commands
+set +e
+apt-get update
+if [[ $? -ne 0 ]]; then
+  echo "⚠️  apt-get update failed, continuing..."
+fi
+
+apt-get install -y curl wget libpcap-dev iptables-persistent netfilter-persistent
+if [[ $? -ne 0 ]]; then
+  echo "⚠️  Some dependencies failed to install"
+fi
+set -e
+
+print_success "Dependencies installation step completed"
+
 
 # Architecture detection and paqet download
 print_step "Detecting architecture and downloading paqet..."

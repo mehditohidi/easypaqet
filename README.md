@@ -4,7 +4,7 @@
 A beautiful, interactive installer for **Paqet** - a bidirectional packet-level proxy that ferries packets across forbidden boundaries using raw sockets.
 
 <div align="center">
-  <img src="https://via.placeholder.com/800x200/6b46c1/ffffff?text=EaSy+PaQeT+Installer" alt="EaSy PaQeT">
+  
 </div>
 
 ## ✨ Features

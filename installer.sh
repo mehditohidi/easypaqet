@@ -514,8 +514,10 @@ if [[ "$MODE" == "2" ]]; then
         fi
     done
     
-    read -p "Enter SERVER PORT (default $PORT): " SERVER_PORT
-    SERVER_PORT=${SERVER_PORT:-$PORT}
+    # read -p "Enter SERVER PORT (default $PORT): " SERVER_PORT
+    # SERVER_PORT=${SERVER_PORT:-$PORT}
+
+    SERVER_PORT=$PORT
     
     # SOCKS5 Proxy
     echo ""
@@ -578,11 +580,14 @@ fi
 # ========== INSTALLATION ==========
 print_header "SYSTEM INSTALLATION"
 
-# Update and install dependencies
 print_step "Updating package list and installing dependencies..."
-apt-get update > /dev/null 2>&1
-apt-get install -y curl wget libpcap-dev iptables-persistent netfilter-persistent > /dev/null 2>&1
+apt-get update -y -o Dpkg::Progress-Fancy="1"
+apt-get install -y \
+  -o Dpkg::Progress-Fancy="1" \
+  curl wget libpcap-dev iptables-persistent netfilter-persistent
+
 print_success "Dependencies installed"
+
 
 # Architecture detection and paqet download
 print_step "Detecting architecture and downloading paqet..."

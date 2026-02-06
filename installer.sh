@@ -1,9 +1,6 @@
 #!/bin/bash
 set -e
 
-# ========== UI FUNCTIONS ==========
-#!/bin/bash
-
 # Clear the screen
 clear
 
@@ -86,7 +83,7 @@ echo ""
 echo -e "\e[1;35m══════════════════════════════════════════════════════════\e[0m"
 
 while true; do
-    read -p "Choose option (1 - 7): " MODE
+    read -p "Choose option (1 - 8): " MODE
     case $MODE in
         1|2|3|4|5|6|7) break ;;
         *) print_error "Invalid option. Please enter 1 to 7." ;;
@@ -207,16 +204,56 @@ case $MODE in
         fi
         exit 0
         ;;
+
+        6) # Improve Connection Speed (Turbo)
+
+        print_header "PAQET TURBO - IP TABLE SETTINGS"
+
+        DEFAULT_PORT=443
+        read -p "Enter Server Port (default $DEFAULT_PORT): " PORT
+        PORT=${PORT:-$DEFAULT_PORT}
+
         
-    6) # Uninstall
+        sudo iptables -t raw -D PREROUTING -p tcp --dport $PORT -j NOTRACK 2>/dev/null
+        sudo iptables -t raw -D OUTPUT -p tcp --sport $PORT -j NOTRACK 2>/dev/null
+        sudo iptables -t mangle -D OUTPUT -p tcp --sport $PORT --tcp-flags RST RST -j DROP 2>/dev/null
+        sudo iptables -t filter -D INPUT -p tcp --dport $PORT -j ACCEPT 2>/dev/null
+        sudo iptables -t filter -D OUTPUT -p tcp --sport $PORT -j ACCEPT 2>/dev/null
+
+ 
+        sudo iptables -t raw -A PREROUTING -p tcp --dport $PORT -j NOTRACK
+        sudo iptables -t raw -A OUTPUT -p tcp --sport $PORT -j NOTRACK
+        sudo iptables -t mangle -A OUTPUT -p tcp --sport $PORT --tcp-flags RST RST -j DROP
+        sudo iptables -t filter -A INPUT -p tcp --dport $PORT -j ACCEPT
+        sudo iptables -t filter -A OUTPUT -p tcp --sport $PORT -j ACCEPT
+
+
+        sudo netfilter-persistent save
+
+
+        CONFIG_FILE="/etc/paqet/server.yaml"
+        if [[ -f "$CONFIG_FILE" ]]; then
+            sudo sed -i "s/^  conn: .*/  conn: 10/" "$CONFIG_FILE" 2>/dev/null || \
+            echo "  conn: 10" | sudo tee -a "$CONFIG_FILE" >/dev/null
+            print_success "Connection count set to 10 in $CONFIG_FILE"
+        else
+            print_warning "Configuration file not found. Cannot set connection count"
+        fi
+
+        # Restart paqet service
+        sudo systemctl restart paqet
+        print_success "Paqet turbo mode applied!"
+        ;;
+        
+    7) # Uninstall
         clear
         print_header "PAQET UNINSTALLER"
         
         echo -e "\e[1;31m⚠️  WARNING: This will completely remove Paqet from your system!\e[0m"
         echo ""
-        read -p "Are you sure you want to uninstall? (type 'UNINSTALL' to confirm): " CONFIRM_UNINSTALL
+        read -p "Are you sure you want to uninstall? (type 'Y' to confirm): " CONFIRM_UNINSTALL
         
-        if [[ "$CONFIRM_UNINSTALL" != "UNINSTALL" ]]; then
+        if [[ "$CONFIRM_UNINSTALL" != "Y" ]]; then
             print_error "Uninstall cancelled."
             exit 0
         fi
@@ -266,7 +303,7 @@ case $MODE in
         exit 0
         ;;
         
-    7) # Exit
+    8) # Exit
         clear
         echo -e "\e[1;35m"
         echo "Thank you for using EaSy PaQeT!"

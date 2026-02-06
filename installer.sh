@@ -211,19 +211,19 @@ case $MODE in
         print_header "PAQET TURBO - IP TABLE SETTINGS"
         DEFAULT_PORT=443
         read -p "Enter Server Port (default $DEFAULT_PORT): " PORT
-        PORT=${PORT:-$DEFAULT_PORT}
+        SPEEDPORT=${SPEEDPORT:-$DEFAULT_PORT}
 
-        sudo iptables -t raw -D PREROUTING -p tcp --dport $PORT -j NOTRACK 2>/dev/null
-        sudo iptables -t raw -D OUTPUT -p tcp --sport $PORT -j NOTRACK 2>/dev/null
-        sudo iptables -t mangle -D OUTPUT -p tcp --sport $PORT --tcp-flags RST RST -j DROP 2>/dev/null
-        sudo iptables -t filter -D INPUT -p tcp --dport $PORT -j ACCEPT 2>/dev/null
-        sudo iptables -t filter -D OUTPUT -p tcp --sport $PORT -j ACCEPT 2>/dev/null
+        sudo iptables -t raw -D PREROUTING -p tcp --dport $SPEEDPORT -j NOTRACK 2>/dev/null
+        sudo iptables -t raw -D OUTPUT -p tcp --sport $SPEEDPORT -j NOTRACK 2>/dev/null
+        sudo iptables -t mangle -D OUTPUT -p tcp --sport $SPEEDPORT --tcp-flags RST RST -j DROP 2>/dev/null
+        sudo iptables -t filter -D INPUT -p tcp --dport $SPEEDPORT -j ACCEPT 2>/dev/null
+        sudo iptables -t filter -D OUTPUT -p tcp --sport $SPEEDPORT -j ACCEPT 2>/dev/null
 
-        sudo iptables -t raw -A PREROUTING -p tcp --dport $PORT -j NOTRACK
-        sudo iptables -t raw -A OUTPUT -p tcp --sport $PORT -j NOTRACK
-        sudo iptables -t mangle -A OUTPUT -p tcp --sport $PORT --tcp-flags RST RST -j DROP
-        sudo iptables -t filter -A INPUT -p tcp --dport $PORT -j ACCEPT
-        sudo iptables -t filter -A OUTPUT -p tcp --sport $PORT -j ACCEPT
+        sudo iptables -t raw -A PREROUTING -p tcp --dport $SPEEDPORT -j NOTRACK
+        sudo iptables -t raw -A OUTPUT -p tcp --sport $SPEEDPORT -j NOTRACK
+        sudo iptables -t mangle -A OUTPUT -p tcp --sport $SPEEDPORT --tcp-flags RST RST -j DROP
+        sudo iptables -t filter -A INPUT -p tcp --dport $SPEEDPORT -j ACCEPT
+        sudo iptables -t filter -A OUTPUT -p tcp --sport $SPEEDPORT -j ACCEPT
 
         sudo netfilter-persistent save
 
@@ -238,7 +238,6 @@ case $MODE in
 
         sudo systemctl restart paqet
         print_success "Paqet turbo mode applied!"
-        exit 0
         ;;
     
         

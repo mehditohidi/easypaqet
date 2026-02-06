@@ -22,7 +22,7 @@ A beautiful, interactive installer for **Paqet** - a bidirectional packet-level 
 ### One-Command Installation (Server or Client)
 
 ```bash
-sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/mehditohidi/EaSy-PaQeT/main/installer.sh)"
+sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/mehditohidi/easypaqet/main/installer.sh)"
 ```
 
 ### 📋 Prerequisites

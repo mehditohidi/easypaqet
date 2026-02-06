@@ -597,7 +597,8 @@ case "$ARCH" in
 esac
 
 cd /tmp
-wget -q https://github.com/hanselime/paqet/releases/download/${PAQET_VER}/${PAQET_FILE}
+wget --show-progress -q --progress=bar:force \
+https://github.com/hanselime/paqet/releases/download/${PAQET_VER}/${PAQET_FILE}
 tar -xzf ${PAQET_FILE} 2>/dev/null
 
 # Find and install the binary

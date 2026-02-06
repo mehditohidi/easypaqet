@@ -633,96 +633,87 @@ if [[ "$ENABLE_FEC" =~ ^[Yy]$ ]]; then
 fi
 
 # ========== INSTALLATION ==========
+# ========== INSTALLATION ==========
 print_header "SYSTEM INSTALLATION"
-
-print_step "Selecting fastest Ubuntu mirror..."
-
-set +e
-
-MIRRORS=(
-mirror.iranserver.com
-ir.ubuntu.sindad.cloud
-mirror.arvancloud.ir
-archive.ubuntu.petiak.ir
-ubuntu.hostiran.ir
-mirrors.pardisco.co
-ubuntu.pars.host
-mirror.0-1.cloud
-ubuntu.shatel.ir
-mirror.faraso.org
-repo.linuxmirrors.ir
-)
-
-BEST_MIRROR=""
-BEST_TIME=999999
-
-for m in "${MIRRORS[@]}"; do
-  echo "Testing $m ..."
-
-  t=$(curl --connect-timeout 2 --max-time 4 \
-      -o /dev/null -s -w "%{time_total}" \
-      https://$m/ubuntu/ || true)
-
-  if [[ -z "$t" ]]; then
-    echo "  ❌ timeout"
-    continue
-  fi
-
-  printf "  ✅ %.2fs\n" "$t"
-
-  t_ms=${t/./}
-
-  if (( t_ms < BEST_TIME )); then
-    BEST_TIME=$t_ms
-    BEST_MIRROR=$m
-  fi
-done
-
-if [[ -n "$BEST_MIRROR" ]]; then
-  print_success "Best mirror: $BEST_MIRROR"
-
-  sed -i.bak "s|http://.*archive.ubuntu.com/ubuntu|https://$BEST_MIRROR/ubuntu|g" /etc/apt/sources.list 2>/dev/null || true
-  sed -i.bak "s|http://.*security.ubuntu.com/ubuntu|https://$BEST_MIRROR/ubuntu|g" /etc/apt/sources.list 2>/dev/null || true
-  sed -i.bak "s|http://.*archive.ubuntu.com/ubuntu|https://$BEST_MIRROR/ubuntu|g" /etc/apt/sources.list.d/ubuntu.sources 2>/dev/null || true
-else
-  echo "⚠️  No working mirrors found, using default."
-fi
 
 echo
 print_step "Updating package list..."
-
 set +e
-apt-get update
-if [[ $? -ne 0 ]]; then
-  echo "⚠️  apt-get update failed, continuing..."
+apt-get update || echo "⚠️ apt-get update failed, continuing..."
+
+# --- Determine if we're in client mode ---
+if [[ "$MODE" == "2" ]]; then
+  print_step "Selecting fastest Ubuntu mirror for client mode..."
+
+  MIRRORS=(
+    mirror.iranserver.com
+    ir.ubuntu.sindad.cloud
+    mirror.arvancloud.ir
+    archive.ubuntu.petiak.ir
+    ubuntu.hostiran.ir
+    mirrors.pardisco.co
+    ubuntu.pars.host
+    mirror.0-1.cloud
+    ubuntu.shatel.ir
+    mirror.faraso.org
+    repo.linuxmirrors.ir
+  )
+
+  BEST_MIRROR=""
+  BEST_TIME=999999
+
+  for m in "${MIRRORS[@]}"; do
+    echo "Testing $m ..."
+
+    t=$(curl --connect-timeout 2 --max-time 4 -o /dev/null -s -w "%{time_total}" https://$m/ubuntu/ || true)
+
+    if [[ -z "$t" ]]; then
+      echo "  ❌ timeout"
+      continue
+    fi
+
+    printf "  ✅ %.2fs\n" "$t"
+
+    t_ms=${t/./}
+    if (( t_ms < BEST_TIME )); then
+      BEST_TIME=$t_ms
+      BEST_MIRROR=$m
+    fi
+  done
+
+  if [[ -n "$BEST_MIRROR" ]]; then
+    print_success "Best mirror: $BEST_MIRROR"
+  else
+    echo "⚠️  No working mirrors found, will use default Ubuntu repos."
+  fi
+else
+  echo "Server mode detected — skipping mirror selection."
 fi
 
-# --- Install dependencies with mirror fallback ---
+# --- Install dependencies ---
 PACKAGES=(curl wget libpcap-dev iptables-persistent netfilter-persistent)
 
 for pkg in "${PACKAGES[@]}"; do
   echo
   print_step "Installing $pkg ..."
 
-  SUCCESS=0
-  for m in "${MIRRORS[@]}"; do
-    # Temporarily switch mirror
-    sed -i.bak "s|http://.*archive.ubuntu.com/ubuntu|https://$m/ubuntu|g" /etc/apt/sources.list 2>/dev/null || true
-    sed -i.bak "s|http://.*security.ubuntu.com/ubuntu|https://$m/ubuntu|g" /etc/apt/sources.list 2>/dev/null || true
+  if [[ "$MODE" == "2" && -n "$BEST_MIRROR" ]]; then
+    # Client mode: use the best mirror
+    TMP_SOURCES=$(mktemp)
+    sed "s|http://.*archive.ubuntu.com/ubuntu|https://$BEST_MIRROR/ubuntu|g; s|http://.*security.ubuntu.com/ubuntu|https://$BEST_MIRROR/ubuntu|g" /etc/apt/sources.list > "$TMP_SOURCES"
 
-    apt-get update -qq
+    apt-get update -o Dir::Etc::sourcelist="$TMP_SOURCES" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
+    apt-get install -y -o Dir::Etc::sourcelist="$TMP_SOURCES" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0" "$pkg"
+    rm -f "$TMP_SOURCES"
+  else
+    # Server mode or no mirror: install normally using default repos
     apt-get install -y "$pkg"
-    if [[ $? -eq 0 ]]; then
-      echo "✅ $pkg installed successfully via $m"
-      SUCCESS=1
-      break
-    else
-      echo "❌ Failed with $m, trying next mirror..."
-    fi
-  done
+  fi
 
-  if [[ $SUCCESS -ne 1 ]]; then
-    echo "⚠️  Could not install $pkg with any mirror"
+  if [[ $? -eq 0 ]]; then
+    echo "✅ $pkg installed successfully"
+  else
+    echo "⚠️ Failed to install $pkg"
   fi
 done
 

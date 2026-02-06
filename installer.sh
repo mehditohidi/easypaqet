@@ -641,7 +641,7 @@ print_step "Updating package list..."
 set +e
 apt-get update || echo "⚠️ apt-get update failed, continuing..."
 
-# --- Determine if we're in client mode ---
+# --- MIRROR SELECTION (CLIENT ONLY) ---
 if [[ "$MODE" == "2" ]]; then
   print_step "Selecting fastest Ubuntu mirror for client mode..."
 
@@ -686,8 +686,6 @@ if [[ "$MODE" == "2" ]]; then
   else
     echo "⚠️  No working mirrors found, will use default Ubuntu repos."
   fi
-else
-  echo "Server mode detected — skipping mirror selection."
 fi
 
 # --- Install dependencies ---
@@ -697,16 +695,31 @@ for pkg in "${PACKAGES[@]}"; do
   echo
   print_step "Installing $pkg ..."
 
-  if [[ "$MODE" == "2" && -n "$BEST_MIRROR" ]]; then
-    # Client mode: use the best mirror
-    TMP_SOURCES=$(mktemp)
-    sed "s|http://.*archive.ubuntu.com/ubuntu|https://$BEST_MIRROR/ubuntu|g; s|http://.*security.ubuntu.com/ubuntu|https://$BEST_MIRROR/ubuntu|g" /etc/apt/sources.list > "$TMP_SOURCES"
-
-    apt-get update -o Dir::Etc::sourcelist="$TMP_SOURCES" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
-    apt-get install -y -o Dir::Etc::sourcelist="$TMP_SOURCES" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0" "$pkg"
-    rm -f "$TMP_SOURCES"
+  if [[ "$MODE" == "2" ]] && [[ -n "$BEST_MIRROR" ]]; then
+    # CLIENT mode with working mirror found
+    print_step "Using mirror $BEST_MIRROR for client installation..."
+    
+    # Create temporary sources.list with the best mirror
+    BACKUP_DATE=$(date +%Y%m%d_%H%M%S)
+    cp /etc/apt/sources.list /etc/apt/sources.list.backup_$BACKUP_DATE
+    
+    # Replace all archive.ubuntu.com and security.ubuntu.com with our mirror
+    sed -i "s|http://.*archive.ubuntu.com/ubuntu/|http://$BEST_MIRROR/ubuntu/|g" /etc/apt/sources.list
+    sed -i "s|http://.*security.ubuntu.com/ubuntu/|http://$BEST_MIRROR/ubuntu/|g" /etc/apt/sources.list
+    
+    # Update with new sources
+    apt-get update
+    
+    # Install the package
+    apt-get install -y "$pkg"
+    
+    # Restore original sources.list
+    mv /etc/apt/sources.list.backup_$BACKUP_DATE /etc/apt/sources.list
+    apt-get update  # Update again with original sources
+    
   else
-    # Server mode or no mirror: install normally using default repos
+    # SERVER mode or no mirror found - use default repos
+    print_step "Using default Ubuntu repositories..."
     apt-get install -y "$pkg"
   fi
 

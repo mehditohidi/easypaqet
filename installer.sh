@@ -86,7 +86,7 @@ echo -e "\e[1;35m═════════════════════
 while true; do
     read -p "Choose option (1 - 8): " MODE
     case $MODE in
-        1|2|3|4|5|6|7) break ;;
+        1|2|3|4|5|6|7|8) break ;;
         *) print_error "Invalid option. Please enter 1 to 8." ;;
     esac
 done
@@ -209,28 +209,23 @@ case $MODE in
     6) # Improve Connection Speed (Turbo)
 
         print_header "PAQET TURBO - IP TABLE SETTINGS"
-
         DEFAULT_PORT=443
         read -p "Enter Server Port (default $DEFAULT_PORT): " PORT
         PORT=${PORT:-$DEFAULT_PORT}
 
-        
         sudo iptables -t raw -D PREROUTING -p tcp --dport $PORT -j NOTRACK 2>/dev/null
         sudo iptables -t raw -D OUTPUT -p tcp --sport $PORT -j NOTRACK 2>/dev/null
         sudo iptables -t mangle -D OUTPUT -p tcp --sport $PORT --tcp-flags RST RST -j DROP 2>/dev/null
         sudo iptables -t filter -D INPUT -p tcp --dport $PORT -j ACCEPT 2>/dev/null
         sudo iptables -t filter -D OUTPUT -p tcp --sport $PORT -j ACCEPT 2>/dev/null
 
- 
         sudo iptables -t raw -A PREROUTING -p tcp --dport $PORT -j NOTRACK
         sudo iptables -t raw -A OUTPUT -p tcp --sport $PORT -j NOTRACK
         sudo iptables -t mangle -A OUTPUT -p tcp --sport $PORT --tcp-flags RST RST -j DROP
         sudo iptables -t filter -A INPUT -p tcp --dport $PORT -j ACCEPT
         sudo iptables -t filter -A OUTPUT -p tcp --sport $PORT -j ACCEPT
 
-
         sudo netfilter-persistent save
-
 
         CONFIG_FILE="/etc/paqet/server.yaml"
         if [[ -f "$CONFIG_FILE" ]]; then
@@ -241,10 +236,11 @@ case $MODE in
             print_warning "Configuration file not found. Cannot set connection count"
         fi
 
-        # Restart paqet service
         sudo systemctl restart paqet
         print_success "Paqet turbo mode applied!"
-        ;;        
+        exit 0
+        ;;
+    
         
     7) # Uninstall
         clear

@@ -77,8 +77,9 @@ echo -e "\e[1;36m   2) Install as CLIENT\e[0m"
 echo -e "\e[1;36m   3) See Paqet STATUS\e[0m"
 echo -e "\e[1;36m   4) See Paqet Logs\e[0m"
 echo -e "\e[1;36m   5) Test Connection (Client Only)\e[0m"
-echo -e "\e[1;36m   6) Uninstall\e[0m"
-echo -e "\e[1;36m   7) Exit\e[0m"
+echo -e "\e[1;36m   6) Improve Connection Speed (Turbo)\e[0m"
+echo -e "\e[1;36m   7) Uninstall\e[0m"
+echo -e "\e[1;36m   8) Exit\e[0m"
 echo ""
 echo -e "\e[1;35m══════════════════════════════════════════════════════════\e[0m"
 
@@ -86,7 +87,7 @@ while true; do
     read -p "Choose option (1 - 8): " MODE
     case $MODE in
         1|2|3|4|5|6|7) break ;;
-        *) print_error "Invalid option. Please enter 1 to 7." ;;
+        *) print_error "Invalid option. Please enter 1 to 8." ;;
     esac
 done
 
@@ -205,7 +206,7 @@ case $MODE in
         exit 0
         ;;
 
-        6) # Improve Connection Speed (Turbo)
+    6) # Improve Connection Speed (Turbo)
 
         print_header "PAQET TURBO - IP TABLE SETTINGS"
 
@@ -243,7 +244,7 @@ case $MODE in
         # Restart paqet service
         sudo systemctl restart paqet
         print_success "Paqet turbo mode applied!"
-        ;;
+        ;;        
         
     7) # Uninstall
         clear

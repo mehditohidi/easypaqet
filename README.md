@@ -183,4 +183,4 @@ The open-source community
 
 If you find this project useful, please give it a star on GitHub!
 
-<div align="center"> <sub>Built with ❤️ by <a href="https://github.com/mehditohidi">mehditohidi</a></sub> </div> ```
+<div align="center"> <sub>Built with ❤️ by <a href="https://github.com/mehditohidi">mehditohidi</a></sub> </div>

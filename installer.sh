@@ -656,22 +656,46 @@ else
 fi
 
 echo
-print_step "Updating package list and installing dependencies..."
+print_step "Updating package list..."
 
-# Temporarily disable exit-on-error for apt commands
 set +e
 apt-get update
 if [[ $? -ne 0 ]]; then
   echo "⚠️  apt-get update failed, continuing..."
 fi
 
-apt-get install -y curl wget libpcap-dev iptables-persistent netfilter-persistent
-if [[ $? -ne 0 ]]; then
-  echo "⚠️  Some dependencies failed to install"
-fi
-set -e
+# --- Install dependencies with mirror fallback ---
+PACKAGES=(curl wget libpcap-dev iptables-persistent netfilter-persistent)
 
+for pkg in "${PACKAGES[@]}"; do
+  echo
+  print_step "Installing $pkg ..."
+
+  SUCCESS=0
+  for m in "${MIRRORS[@]}"; do
+    # Temporarily switch mirror
+    sed -i.bak "s|http://.*archive.ubuntu.com/ubuntu|https://$m/ubuntu|g" /etc/apt/sources.list 2>/dev/null || true
+    sed -i.bak "s|http://.*security.ubuntu.com/ubuntu|https://$m/ubuntu|g" /etc/apt/sources.list 2>/dev/null || true
+
+    apt-get update -qq
+    apt-get install -y "$pkg"
+    if [[ $? -eq 0 ]]; then
+      echo "✅ $pkg installed successfully via $m"
+      SUCCESS=1
+      break
+    else
+      echo "❌ Failed with $m, trying next mirror..."
+    fi
+  done
+
+  if [[ $SUCCESS -ne 1 ]]; then
+    echo "⚠️  Could not install $pkg with any mirror"
+  fi
+done
+
+set -e
 print_success "Dependencies installation step completed"
+
 
 
 # Architecture detection and paqet download

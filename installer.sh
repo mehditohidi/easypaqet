@@ -580,13 +580,59 @@ fi
 # ========== INSTALLATION ==========
 print_header "SYSTEM INSTALLATION"
 
-print_step "Updating package list and installing dependencies..."
-apt-get update -y -o Dpkg::Progress-Fancy="1"
-apt-get install -y \
-  -o Dpkg::Progress-Fancy="1" \
-  curl wget libpcap-dev iptables-persistent netfilter-persistent
+print_step "Selecting fastest Ubuntu mirror..."
 
-print_success "Dependencies installed"
+set +e
+
+MIRRORS=(
+mirror.iranserver.com
+ir.ubuntu.sindad.cloud
+mirror.arvancloud.ir
+archive.ubuntu.petiak.ir
+ubuntu.hostiran.ir
+mirrors.pardisco.co
+ubuntu.pars.host
+mirror.0-1.cloud
+ubuntu.shatel.ir
+mirror.faraso.org
+repo.linuxmirrors.ir
+)
+
+BEST_MIRROR=""
+BEST_TIME=999999
+
+for m in "${MIRRORS[@]}"; do
+  echo "Testing $m ..."
+
+  t=$(curl --connect-timeout 2 --max-time 4 \
+      -o /dev/null -s -w "%{time_total}" \
+      https://$m/ubuntu/ || true)
+
+  if [[ -z "$t" ]]; then
+    echo "  ❌ timeout"
+    continue
+  fi
+
+  printf "  ✅ %.2fs\n" "$t"
+
+  t_ms=${t/./}
+
+  if (( t_ms < BEST_TIME )); then
+    BEST_TIME=$t_ms
+    BEST_MIRROR=$m
+  fi
+done
+
+if [[ -n "$BEST_MIRROR" ]]; then
+  print_success "Best mirror: $BEST_MIRROR"
+
+  sed -i.bak "s|http://.*archive.ubuntu.com/ubuntu|https://$BEST_MIRROR/ubuntu|g" /etc/apt/sources.list 2>/dev/null || true
+  sed -i.bak "s|http://.*security.ubuntu.com/ubuntu|https://$BEST_MIRROR/ubuntu|g" /etc/apt/sources.list 2>/dev/null || true
+  sed -i.bak "s|http://.*archive.ubuntu.com/ubuntu|https://$BEST_MIRROR/ubuntu|g" /etc/apt/sources.list.d/ubuntu.sources 2>/dev/null || true
+fi
+
+set -e
+echo
 
 
 # Architecture detection and paqet download

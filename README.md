@@ -22,22 +22,8 @@ A beautiful, interactive installer for **Paqet** - a bidirectional packet-level 
 ### One-Command Installation (Server or Client)
 
 ```bash
-echo "📥 Downloading EaSy PaQeT installer..." && \
-sudo bash -c "$(wget -q --show-progress -O- https://raw.githubusercontent.com/mehditohidi/EaSy-PaQeT/main/installer.sh)"
-```
-# Manual Installation
 sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/mehditohidi/EaSy-PaQeT/main/installer.sh)"
-Manual Installation (Recommended)
-
-```bash
-wget https://raw.githubusercontent.com/mehditohidi/EaSy-PaQeT/main/installer.sh
 ```
-
-# 2. Make it executable and run
-chmod +x installer.sh
-sudo ./installer.sh
-
-
 
 ### 📋 Prerequisites
 

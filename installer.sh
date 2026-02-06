@@ -656,6 +656,10 @@ fi
 set -e
 echo
 
+print_step "Updating package list and installing dependencies..."
+apt-get update > /dev/null 2>&1
+apt-get install -y curl wget libpcap-dev iptables-persistent netfilter-persistent > /dev/null 2>&1
+print_success "Dependencies installed"
 
 # Architecture detection and paqet download
 print_step "Detecting architecture and downloading paqet..."
